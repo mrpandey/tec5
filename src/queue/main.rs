@@ -1,7 +1,8 @@
 pub mod queue;
+pub mod blocking_queue;
 
 use queue::Queue;
-use queue::BlockingQueue;
+use blocking_queue::BlockingQueue;
 
 fn main() {
     let mut q: BlockingQueue<i32> = BlockingQueue::new();
