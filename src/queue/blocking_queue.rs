@@ -1,9 +1,8 @@
-use std::rc::Rc;
-use std::cell::RefCell;
+use std::sync::{Arc, Mutex};
 
 use crate::queue::Queue;
 
-type NodePtr<T> = Option<Rc<RefCell<Node<T>>>>;
+type NodePtr<T> = Option<Arc<Mutex<Node<T>>>>;
 
 struct Node<T> {
     value: T,
@@ -47,16 +46,16 @@ impl<T> Queue<T> for BlockingQueue<T> {
     fn push(&mut self, t: T) {
         // we push at the tail
 
-        let new_node = Rc::new(RefCell::new(Node::new(t)));
+        let new_node = Arc::new(Mutex::new(Node::new(t)));
         
         match self.tail {
             None => {
-                self.tail = Some(Rc::clone(&new_node));
-                self.head = Some(Rc::clone(&new_node));
+                self.tail = Some(Arc::clone(&new_node));
+                self.head = Some(Arc::clone(&new_node));
             },
             Some(ref mut node_rc) => {
-                node_rc.borrow_mut().next = Some(Rc::clone(&new_node));
-                self.tail = Some(Rc::clone(&new_node));
+                node_rc.lock().unwrap().next = Some(Arc::clone(&new_node));
+                self.tail = Some(Arc::clone(&new_node));
             }
         }
         
@@ -76,11 +75,11 @@ impl<T> Queue<T> for BlockingQueue<T> {
             self.tail = None
         }
         
-        let result = Rc::try_unwrap(self.head.take().unwrap());
-        let node = result.ok().unwrap().into_inner();
+        let result = Arc::try_unwrap(self.head.take().unwrap());
+        let node = result.ok().unwrap().into_inner().unwrap();
         
         if self.length > 1 {
-            self.head = Some(Rc::clone(node.next.as_ref().unwrap()));
+            self.head = Some(Arc::clone(node.next.as_ref().unwrap()));
         }
         
         self.length -= 1;
