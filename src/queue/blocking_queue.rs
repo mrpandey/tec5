@@ -88,3 +88,44 @@ impl<T> Queue<T> for BlockingQueue<T> {
         return Some(node.value);
     }
 }
+
+
+#[cfg(test)]
+mod tests {
+    use crate::queue::Queue;
+    use super::BlockingQueue;
+
+    #[test]
+    fn basic() {
+        let mut q = BlockingQueue::<i32>::new();
+
+        assert!(q.len() == 0);
+        assert!(q.pop() == None);
+
+        q.push(6);
+        q.push(4);
+        q.push(8);
+        q.push(5);
+
+        assert!(q.len() == 4);
+
+        assert!(q.pop() == Some(6));
+        assert!(q.pop() == Some(4));
+        assert!(q.pop() == Some(8));
+
+        assert!(q.len() == 1);
+
+        // push again to check things don't get corrupted
+        q.push(8);
+        q.push(3);
+
+        assert!(q.len() == 3);
+        assert!(q.pop() == Some(5));
+        assert!(q.pop() == Some(8));
+        
+        // exhaustion check
+        assert!(q.pop() == Some(3));
+        assert!(q.pop() == None);
+        assert!(q.len() == 0);
+    }
+}
