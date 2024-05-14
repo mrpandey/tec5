@@ -1,4 +1,5 @@
 pub mod blocking_queue;
+pub mod lockfree_queue;
 pub mod queue;
 
 use std::sync::{Arc, Mutex};
